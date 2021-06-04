@@ -1,0 +1,103 @@
+# creates the background color and creates custom properties 
+app.background = gradient('black', 'darkBlue', 'orange', 'yellow', 'gold', start='top')
+app.steps = 0
+app.stepsPerSecond = 45
+
+# creates the one star in the sky
+s = Star(35, 40, 20, 5, fill='yellow')
+
+# mountains
+mountains = Polygon(0, 400, 0, 260, 45, 205, 115, 230, 190, 170, 290, 245, 365, 200, 400, 260, 400, 400, fill = 'black')
+
+# a road to the top of the mountain
+RegularPolygon(190, 326, 157, 3, fill = 'grey')
+Line(190, 175, 190, 400, fill = 'yellow', dashes = True)
+
+# creates many colors on the bottom of the mountain to represent different shops
+app.colors = [ 'red', 'orange', 'yellow', 'green', 'blue', 'purple' ]
+app.colors.append('skyBlue')
+app.centerX = 20 
+
+for color in app.colors: 
+    Circle(app.centerX, 360, 15, fill=color)
+    app.centerX += 60
+
+# is basically a traffic light on top of a mountain
+dot = Circle(55, 280, 15, fill='red')
+
+def isNearCenter(x, y):
+    if (distance(x, y, 200, 200) < 50):
+        return True
+    else:
+        return False
+
+# this moves the dot so it can turn green and move around 
+def onMouseMove(mouseX, mouseY):
+    dot.centerX = mouseX
+    dot.centerY = mouseY
+    if (isNearCenter(mouseX, mouseY) == True):
+        dot.fill = 'green'
+    else:
+        dot.fill = 'red'
+
+# enters the initials of the person who is on the app
+app.name = app.getTextInput('Enter a full name')
+Label('Name: ' + app.name, 200, 180, size=20, visible = False)
+message = Label('Initials: ', 320, 20, size=20, fill = 'white', font = 'monoscope')
+
+for c in app.name:
+    if (c.isupper() == True):
+        message.value += c
+        
+# draws meteors coming down to earth
+meteors = Group()
+def drawMeteor(meteorSize):
+    # Draws a new meteor.
+    meteor = Group(
+        Polygon(0, 340, 0, 365, 20, 400, 40, 365, 40, 340,
+                fill=gradient('orange', 'orangeRed', 'black', start='top')),
+        Circle(20, 340, 20,
+              fill=gradient('white', 'gray', 'dimGray', start='top')),
+        Oval(30, 345, 5, 8, fill='dimGray', rotateAngle=20),
+        Oval(30, 345, 7, 8,
+             fill=gradient('silver', 'gray', start='top'), rotateAngle=20),
+        Oval(12, 330, 3, 5,
+             fill=gradient('silver', 'gray', start='top'), rotateAngle=20)
+        )
+
+# these are the properties of the meteors and all their physical traits
+    meteor.rotateAngle = 180
+    meteor.centerX = randrange(0, 400)
+    meteor.bottom = 0
+    meteor.width = meteorSize
+    meteor.height = 2 * meteorSize
+    meteors.add(meteor)        
+
+# when the app starts the steps start to increase and the meteors start to fall. 
+def onStep():
+    app.steps += 1
+# moves the meateor downward into the mountains
+    for meteor in meteors.children:
+        meteor.centerY += 4
+
+# makes the meteors go down in different sizes and resets the app steps
+    if (app.steps >= 20):
+        drawMeteor(randrange(20, 60))
+        app.steps = 0
+
+# when the meteors hit the mountain, they disappear so it means that they exploded on the mountains
+    for meteor in meteors.children:    
+        if (meteor.hitsShape(mountains) == True):
+            meteors.remove(meteor)
+    
+# this moves the star when you click anywhere on the canvas 
+def onMousePress(mouseX, mouseY):
+    s.centerX = mouseX
+    s.centerY = mouseY
+
+# when you click the space bar, the star falls and leaves a yellow mark when it hits the mountain  
+def onKeyPress(key):
+    if (key == 'space'):
+        while (s.hitsShape(mountains) == False):
+            Star(s.centerX, s.centerY, 40, 5, fill='yellow', opacity=10)
+            s.centerY += 5
